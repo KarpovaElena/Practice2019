@@ -1,0 +1,79 @@
+#include <iostream>
+#include <stdio.h>
+#include <cstdlib>
+
+using namespace std;
+
+class Image
+ {
+  int *img;
+  int mx, my;
+
+public:
+
+/*Image () 
+ {
+  mx = 0;
+  my = 0;
+  img = (int*) malloc(sizeof(int) * mx * my);
+ }*/
+
+Image (int tmx, int tmy) 
+ {
+  mx = tmx; 
+  my = tmy; 
+  img = (int*) malloc(sizeof(int) * mx * my);  //for (int i = 0; i < mx*my; i++)	img[i] = 0; 
+ }
+
+~Image () 
+ {
+  free (img); 
+ }
+
+
+int getX () {return mx;} 
+int getY () {return my;} 
+
+int get (int x, int y) 
+ {
+  if (x < mx && y < my && x >= 0 && y >= 0) 
+  return img[x + y*mx];
+ }
+
+void set (int x, int y, int colour) 
+ {
+  if (x < mx && y < my && x >= 0 && y >= 0) 
+ 	img[x + y*mx] = colour; 
+ }
+
+void show () 
+ {
+  for (int j = 0; j < my; j++)
+  	{
+   	 for (int i = 0; i < mx; i++)
+       {
+    	cout << img[i + j*mx] << " ";
+       }
+     cout << endl;
+    }
+  cout << endl;
+ }
+
+};
+
+int main ()
+ {
+  Image a(5, 5);
+  cout << "Image a" << endl;
+  for (int j = 0; j < a.getY(); j++)
+    {
+     for (int i = 0; i < a.getX(); i++)
+       {
+        a.set(i, j, 0);
+       }
+    }
+  
+  a.show();
+   
+  return 0;
+}
