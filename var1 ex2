@@ -1,0 +1,61 @@
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+# define M_PIl 3.141592653589793238462643383279502884L
+
+using namespace cv;
+
+int main() {
+	VideoCapture cap("vid2.mp4");
+	if (!cap.isOpened())  
+		return -1;
+	Mat im;
+	for (; ;) {
+		Mat mat, frame;
+		cap >> frame;
+		mat = frame;
+		if (mat.empty()) 
+			break;
+		cv::cvtColor(mat, mat, cv::COLOR_RGB2GRAY);
+		cv::GaussianBlur(mat, mat, cv::Size(3, 3), 0);
+		cv::Canny(mat, mat, 50, 100);
+		std::vector<std::vector<cv::Point>> points;
+		auto kn = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+		cv::dilate(mat, mat, kn);
+		cv::findContours(mat, points, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+		for (int i = 0; i < points.size(); i++) {
+			std::vector<cv::Point> _points;
+			double len = cv::arcLength(cv::Mat(points[i]), true);
+			if (len < 30) continue;
+			cv::approxPolyDP(points[i], _points, len * 0.02, true);
+			cv::Moments m = cv::moments(_points);
+			cv::Point centm(m.m10 / m.m00, m.m01 / m.m00);
+			if (_points.size() == 4) {
+				cv::drawContours(frame, std::vector<std::vector<cv::Point>>{_points}, 0, cv::Scalar(255, 255, 0), 2);
+				cv::drawMarker(frame, centm, cv::Scalar(255, 255, 255));
+				continue;
+			}
+			if (_points.size() == 3) {
+				cv::drawContours(frame, std::vector<std::vector<cv::Point>>{_points}, 0, cv::Scalar(0, 255, 255), 2);
+				cv::drawMarker(frame, centm, cv::Scalar(255, 255, 255));
+				continue;
+			}
+			if (_points.size() > 4 || _points.size() < 3) {
+				cv::Point2f cent;
+				float rad;
+				cv::minEnclosingCircle(points[i], cent, rad);
+				if ((2 * rad * M_PIl - len) * (2 * rad * M_PIl - len) < len * 0.2) {
+					cv::circle(frame, cent, rad, cv::Scalar(0, 255, 0), 2);
+				}
+				continue;
+			}
+
+		}
+		cv::imshow("fff", frame);
+		if (waitKey(30) >= 0) break;
+	}
+
+	return 0;
+}
